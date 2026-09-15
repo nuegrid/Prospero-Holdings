@@ -41,9 +41,9 @@ const statistics: Statistic[] = [
     duration: 1200,
   },
   {
-    value: 5000,
-    suffix: "+",
-    label: "Employees",
+    value: 10,
+    suffix: "K+",
+    label: "Clients",
     left: "79.4011%",
     duration: 1800,
   },
@@ -71,15 +71,12 @@ function CountUp({
   const timeoutRef =
     useRef<number | null>(null);
 
-  const hasAnimatedRef =
-    useRef(false);
+  const hasAnimatedRef = useRef(false);
 
-  const [count, setCount] =
-    useState(0);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const counter =
-      counterRef.current;
+    const counter = counterRef.current;
 
     if (!counter) {
       return;
@@ -113,18 +110,14 @@ function CountUp({
             const elapsed =
               currentTime - startTime;
 
-            const progress =
-              Math.min(
-                elapsed / duration,
-                1,
-              );
+            const progress = Math.min(
+              elapsed / duration,
+              1,
+            );
 
             const easedProgress =
               1 -
-              Math.pow(
-                1 - progress,
-                4,
-              );
+              Math.pow(1 - progress, 4);
 
             setCount(
               Math.round(
@@ -139,7 +132,6 @@ function CountUp({
                 );
             } else {
               setCount(end);
-
               animationFrameRef.current =
                 null;
             }
@@ -398,7 +390,6 @@ export default function FootprintSection() {
               <span
                 className="
                   block whitespace-normal
-
                   xl:whitespace-nowrap
                 "
               >
@@ -408,7 +399,6 @@ export default function FootprintSection() {
               <span
                 className="
                   block whitespace-normal
-
                   xl:whitespace-nowrap
                 "
               >
@@ -423,7 +413,6 @@ export default function FootprintSection() {
           className="
             absolute inset-0
             z-10 hidden
-
             md:block
           "
         >
@@ -449,7 +438,6 @@ export default function FootprintSection() {
                     relative h-full
                   "
                 >
-                  {/* Desktop yellow line */}
                   <div
                     aria-hidden="true"
                     className="
@@ -480,9 +468,7 @@ export default function FootprintSection() {
                       duration={
                         item.duration
                       }
-                      delay={
-                        index * 100
-                      }
+                      delay={index * 100}
                     />
                   </Typography>
 
@@ -559,9 +545,7 @@ export default function FootprintSection() {
                       duration={
                         item.duration
                       }
-                      delay={
-                        index * 100
-                      }
+                      delay={index * 100}
                     />
                   </Typography>
 

@@ -67,7 +67,7 @@ const developments: Development[] = [
   },
   {
     id: 4,
-    company: "NueGrid",
+    company: "NueGrid Solutions",
     title:
       "NueGrid Expands Its Technology Portfolio With NueBits CRM",
     image:

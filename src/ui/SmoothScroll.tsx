@@ -4,10 +4,12 @@ import {
   type ReactNode,
   useEffect,
 } from "react";
+
 import {
   ReactLenis,
   useLenis,
 } from "lenis/react";
+
 import { gsap } from "gsap/dist/gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
@@ -23,49 +25,45 @@ function ScrollTriggerSync() {
   const lenis = useLenis();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
+    if (
+      "scrollRestoration" in
+      window.history
+    ) {
+      window.history.scrollRestoration =
+        "manual";
     }
 
     if (!lenis) {
       return;
     }
 
-    const handleLenisScroll = () => {
+    /*
+     * Update ScrollTrigger only when an
+     * actual scroll event occurs.
+     */
+    const handleScroll = () => {
       ScrollTrigger.update();
     };
 
-    const updateLenis = (
-      time: number,
-    ) => {
-      lenis.raf(time * 1000);
-    };
-
-    lenis.on(
-      "scroll",
-      handleLenisScroll,
-    );
-
-    gsap.ticker.add(updateLenis);
-    gsap.ticker.lagSmoothing(0);
+    lenis.on("scroll", handleScroll);
 
     const refreshFrame =
-      requestAnimationFrame(() => {
-        lenis.resize();
-        ScrollTrigger.refresh();
-      });
+      window.requestAnimationFrame(
+        () => {
+          lenis.resize();
+          ScrollTrigger.refresh();
+        },
+      );
 
     return () => {
-      cancelAnimationFrame(
+      window.cancelAnimationFrame(
         refreshFrame,
       );
 
       lenis.off(
         "scroll",
-        handleLenisScroll,
+        handleScroll,
       );
-
-      gsap.ticker.remove(updateLenis);
     };
   }, [lenis]);
 
@@ -79,27 +77,36 @@ export default function SmoothScroll({
     <ReactLenis
       root
       options={{
-        autoRaf: false,
+        /*
+         * Lenis controls its own RAF.
+         * This avoids GSAP forcing updates
+         * on every frame during mobile touch.
+         */
+        autoRaf: true,
+
         lerp: 0.14,
         smoothWheel: true,
         wheelMultiplier: 1,
 
         /*
-         * Allows vertical page scrolling when
-         * cursor is over cards and sliders.
+         * Native touch scrolling on mobile.
          */
-        allowNestedScroll: true,
-
-        gestureOrientation: "vertical",
-        orientation: "vertical",
-
         syncTouch: false,
         touchMultiplier: 1,
+
+        orientation: "vertical",
+        gestureOrientation: "vertical",
+
+        /*
+         * Prevent extra nested-scroll checks
+         * and mobile overscroll bounce.
+         */
+        allowNestedScroll: false,
+        overscroll: false,
 
         anchors: false,
         stopInertiaOnNavigate: true,
 
-        overscroll: true,
         autoResize: true,
         respectReducedMotion: true,
       }}

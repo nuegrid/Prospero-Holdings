@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -40,19 +41,6 @@ const companies: Company[] = [
   },
   {
     number: "02",
-    name: "PS Gold",
-    description:
-      "Secure procurement, storage, and trading of physical gold for portfolio diversification and long-term value preservation.",
-    logo:
-      "/images/company-logos/ps-gold.svg",
-    image:
-      "/images/blogs/ps-gold/ps-gold.jpg",
-    imageAlt:
-      "PS Gold precious metals and gold services",
-    website: "https://psgold.ae/",
-  },
-  {
-    number: "03",
     name: "PSFX Pro",
     description:
       "Transparent trade execution, competitive trading conditions, and reliable access to global financial markets.",
@@ -65,7 +53,7 @@ const companies: Company[] = [
     website: "https://psfxpro.com/",
   },
   {
-    number: "04",
+    number: "03",
     name: "Matrix Finbiz",
     description:
       "Accessible loan solutions with fast approvals, flexible repayments, transparent terms, and responsible lending practices.",
@@ -78,8 +66,8 @@ const companies: Company[] = [
     website: "https://matrixfinbiz.com/",
   },
   {
-    number: "05",
-    name: "Nuegrid",
+    number: "04",
+    name: "Nuegrid Solutions",
     description:
       "Secure, scalable fintech and software solutions that streamline operations and support sustainable business growth.",
     logo:
@@ -87,12 +75,12 @@ const companies: Company[] = [
     image:
       "/images/blogs/nuegrid/nuebits-01.jpg",
     imageAlt:
-      "Nuegrid digital and technology solutions",
+      "Nuegrid Solutions digital and technology solutions",
     website: "https://nuegrid.com/",
   },
   {
-    number: "06",
-    name: "DC Holding",
+    number: "05",
+    name: "Desert Castle",
     description:
       "Technology-led real estate solutions with verified listings, trusted brokers, and complete client support.",
     logo:
@@ -100,8 +88,21 @@ const companies: Company[] = [
     image:
       "/images/blogs/desert-castle/desert-castle.jpg",
     imageAlt:
-      "DC Holding premium real estate development",
+      "Desert Castle premium real estate services",
     website: "https://desertcastle.ae/",
+  },
+  {
+    number: "06",
+    name: "PS Gold",
+    description:
+      "Secure procurement, storage, and trading of physical gold for portfolio diversification and long-term value preservation.",
+    logo:
+      "/images/company-logos/ps-gold.svg",
+    image:
+      "/images/blogs/ps-gold/ps-gold.jpg",
+    imageAlt:
+      "PS Gold precious metals and gold services",
+    website: "https://psgold.ae/",
   },
   {
     number: "07",
@@ -128,96 +129,70 @@ export default function CompaniesSection() {
     useRef<HTMLElement | null>(null);
 
   const cardRefs =
-    useRef<Array<HTMLAnchorElement | null>>(
-      [],
-    );
+    useRef<
+      Array<HTMLAnchorElement | null>
+    >([]);
 
-  const scrollTimerRef =
-    useRef<number | null>(null);
-
-  const [isScrolling, setIsScrolling] =
-    useState(false);
+  const sentinelRefs =
+    useRef<
+      Array<HTMLSpanElement | null>
+    >([]);
 
   const [
     activeCompanyIndex,
     setActiveCompanyIndex,
   ] = useState(0);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolling(true);
-
-      if (
-        scrollTimerRef.current !== null
-      ) {
-        window.clearTimeout(
-          scrollTimerRef.current,
-        );
-      }
-
-      scrollTimerRef.current =
-        window.setTimeout(() => {
-          setIsScrolling(false);
-          scrollTimerRef.current = null;
-        }, 120);
-    };
-
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      {
-        passive: true,
-      },
-    );
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll,
-      );
-
-      if (
-        scrollTimerRef.current !== null
-      ) {
-        window.clearTimeout(
-          scrollTimerRef.current,
-        );
-      }
-    };
-  }, []);
-
+  /*
+   * Desktop active-card tracking.
+   */
   useGSAP(
     () => {
-      cardRefs.current.forEach(
-        (card, index) => {
-          if (!card) {
-            return;
-          }
+      const matchMedia =
+        gsap.matchMedia();
 
-          ScrollTrigger.create({
-            trigger: card,
-            start: "top top+=1",
-            invalidateOnRefresh: true,
+      matchMedia.add(
+        "(min-width: 1024px)",
+        () => {
+          cardRefs.current.forEach(
+            (card, index) => {
+              if (!card) {
+                return;
+              }
 
-            onEnter: () => {
-              setActiveCompanyIndex(index);
+              ScrollTrigger.create({
+                trigger: card,
+                start: "top top+=1",
+                invalidateOnRefresh: true,
+
+                onEnter: () => {
+                  setActiveCompanyIndex(
+                    index,
+                  );
+                },
+
+                onEnterBack: () => {
+                  setActiveCompanyIndex(
+                    index,
+                  );
+                },
+
+                onLeaveBack: () => {
+                  setActiveCompanyIndex(
+                    Math.max(
+                      0,
+                      index - 1,
+                    ),
+                  );
+                },
+              });
             },
-
-            onEnterBack: () => {
-              setActiveCompanyIndex(index);
-            },
-
-            onLeaveBack: () => {
-              setActiveCompanyIndex(
-                Math.max(0, index - 1),
-              );
-            },
-          });
+          );
         },
       );
 
       return () => {
-        ScrollTrigger.refresh();
+        matchMedia.revert();
       };
     },
     {
@@ -227,14 +202,167 @@ export default function CompaniesSection() {
     },
   );
 
+  /*
+   * Mobile and tablet tracking.
+   *
+   * The observer watches non-sticky sentinels.
+   * It does not measure sticky cards while scrolling,
+   * preventing active-state flickering.
+   */
+  useEffect(() => {
+    const mobileQuery =
+      window.matchMedia(
+        "(max-width: 1023px)",
+      );
+
+    let observer:
+      | IntersectionObserver
+      | null = null;
+
+    const setInitialActiveCard = () => {
+      if (!mobileQuery.matches) {
+        return;
+      }
+
+      const activationPoint =
+        window.innerHeight * 0.05;
+
+      let nextActiveIndex = 0;
+
+      sentinelRefs.current.forEach(
+        (sentinel, index) => {
+          if (!sentinel) {
+            return;
+          }
+
+          if (
+            sentinel.getBoundingClientRect()
+              .top <= activationPoint
+          ) {
+            nextActiveIndex = index;
+          }
+        },
+      );
+
+      setActiveCompanyIndex(
+        nextActiveIndex,
+      );
+    };
+
+    const createObserver = () => {
+      observer?.disconnect();
+      observer = null;
+
+      if (!mobileQuery.matches) {
+        return;
+      }
+
+      observer =
+        new IntersectionObserver(
+          (entries) => {
+            const visibleEntries =
+              entries
+                .filter(
+                  (entry) =>
+                    entry.isIntersecting,
+                )
+                .sort(
+                  (first, second) =>
+                    first.boundingClientRect
+                      .top -
+                    second.boundingClientRect
+                      .top,
+                );
+
+            const activeEntry =
+              visibleEntries.at(-1);
+
+            if (!activeEntry) {
+              return;
+            }
+
+            const index = Number(
+              (
+                activeEntry.target as HTMLElement
+              ).dataset.companyIndex,
+            );
+
+            if (
+              Number.isNaN(index)
+            ) {
+              return;
+            }
+
+            setActiveCompanyIndex(
+              (currentIndex) =>
+                currentIndex === index
+                  ? currentIndex
+                  : index,
+            );
+          },
+          {
+            threshold: 0,
+            rootMargin:
+              "0px 0px -95% 0px",
+          },
+        );
+
+      sentinelRefs.current.forEach(
+        (sentinel) => {
+          if (sentinel) {
+            observer?.observe(sentinel);
+          }
+        },
+      );
+
+      setInitialActiveCard();
+    };
+
+    createObserver();
+
+    const handleMediaChange = () => {
+      createObserver();
+    };
+
+    const handleResize = () => {
+      setInitialActiveCard();
+    };
+
+    mobileQuery.addEventListener(
+      "change",
+      handleMediaChange,
+    );
+
+    window.addEventListener(
+      "resize",
+      handleResize,
+      {
+        passive: true,
+      },
+    );
+
+    return () => {
+      observer?.disconnect();
+
+      mobileQuery.removeEventListener(
+        "change",
+        handleMediaChange,
+      );
+
+      window.removeEventListener(
+        "resize",
+        handleResize,
+      );
+    };
+  }, []);
+
   return (
     <section
       ref={sectionRef}
       id="companies"
       className="
         relative w-full
-        overflow-x-clip
-        overflow-y-visible
+        overflow-visible
         bg-black text-white
 
         [--companies-grid-gutter:20px]
@@ -254,14 +382,12 @@ export default function CompaniesSection() {
         className="
           relative mx-auto
           w-full max-w-[1728px]
-          overflow-x-clip
-          overflow-y-visible
+          overflow-visible
           bg-black
 
           lg:overflow-clip
         "
       >
-        {/* Section top and outer grid lines */}
         <GridLines
           thickness={0.5}
           color="#2B2B2B"
@@ -287,7 +413,7 @@ export default function CompaniesSection() {
           ]}
         />
 
-        {/* Header */}
+        {/* Section header */}
         <div
           className="
             relative z-10
@@ -302,7 +428,7 @@ export default function CompaniesSection() {
             lg:h-[clamp(280px,17.361111vw,300px)]
           "
         >
-          {/* Tablet and desktop centre line */}
+          {/* Centre divider */}
           <div
             aria-hidden="true"
             className="
@@ -320,7 +446,8 @@ export default function CompaniesSection() {
           {/* Heading column */}
           <div
             className="
-              relative z-10 min-w-0
+              relative z-10
+              min-w-0
               px-[var(--companies-content-padding)]
               pb-[30px] pt-[58px]
 
@@ -406,7 +533,8 @@ export default function CompaniesSection() {
           {/* Description column */}
           <div
             className="
-              relative z-10 min-w-0
+              relative z-10
+              min-w-0
               px-[var(--companies-content-padding)]
               pb-[52px] pt-[4px]
 
@@ -445,11 +573,11 @@ export default function CompaniesSection() {
                 "
               >
                 Each company within the Prospero
-                ecosystem brings specialized expertise
-                to its market. Together, they form a
-                diversified platform designed to
-                strengthen the group and create lasting
-                impact.
+                ecosystem brings specialized
+                expertise to its market. Together,
+                they form a diversified platform
+                designed to strengthen the group
+                and create lasting impact.
               </Typography>
             </ScrollReveal>
           </div>
@@ -474,420 +602,409 @@ export default function CompaniesSection() {
                 activeCompanyIndex ===
                 index;
 
-              const allowHover =
-                !isScrolling &&
-                !isActive;
-
               return (
-                <a
+                <Fragment
                   key={company.number}
-                  ref={(element) => {
-                    cardRefs.current[index] =
-                      element;
-                  }}
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Visit ${company.name} website`}
-                  data-cursor-label="Discover"
-                  style={{
-                    zIndex: index + 10,
-                  }}
-                  className="
-                    group sticky top-0
-                    isolate block
-                    w-full overflow-hidden
-                    bg-black text-white
-                    no-underline outline-none
-
-                    max-lg:[backface-visibility:hidden]
-                    max-lg:[-webkit-backface-visibility:hidden]
-                    max-lg:[transform:translate3d(0,0,0)]
-                    max-lg:[will-change:transform]
-
-                    focus-visible:ring-2
-                    focus-visible:ring-inset
-                    focus-visible:ring-[#E0BE3D]
-                  "
                 >
-                  {/* Full card left line */}
+                  {/* Non-sticky mobile tracking point */}
                   <span
+                    ref={(element) => {
+                      sentinelRefs.current[
+                        index
+                      ] = element;
+                    }}
+                    data-company-index={index}
                     aria-hidden="true"
                     className="
                       pointer-events-none
-                      absolute bottom-0 left-0 top-0
-                      z-[70] w-px
-                      bg-[#343434]
+                      block h-px w-full
+                      opacity-0
+
+                      lg:hidden
                     "
                   />
 
-                  {/* Full card right line */}
-                  <span
-                    aria-hidden="true"
+                  <a
+                    ref={(element) => {
+                      cardRefs.current[index] =
+                        element;
+                    }}
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit ${company.name} website`}
+                    data-cursor-label="Discover"
+                    style={{
+                      zIndex: index + 10,
+                    }}
                     className="
-                      pointer-events-none
-                      absolute bottom-0 right-0 top-0
-                      z-[70] w-px
-                      bg-[#343434]
-                    "
-                  />
-
-                  {/* Information row */}
-                  <div
-                    className="
-                      relative grid w-full
-                      grid-cols-[52px_minmax(0,1fr)]
-                      bg-black
-
-                      max-lg:[backface-visibility:hidden]
-                      max-lg:[transform:translate3d(0,0,0)]
-
-                      sm:grid-cols-[56px_minmax(0,1fr)]
-
-                      md:grid-cols-[64px_minmax(0,1fr)]
-
-                      lg:grid-cols-[clamp(54px,4.166667vw,72px)_minmax(0,1fr)]
-                    "
-                  >
-                    {/* Information top line */}
-                    <span
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute left-0 right-0 top-0
-                        z-[70] h-px
-                        bg-[#343434]
-                      "
-                    />
-
-                    {/* Information bottom line */}
-                    <span
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute bottom-0 left-0 right-0
-                        z-[70] h-px
-                        bg-[#343434]
-                      "
-                    />
-
-                    {/* Number column */}
-                    <div
-                      className={`
-                        relative flex
-                        min-h-[156px]
-                        items-center justify-center
-
-                        sm:min-h-[150px]
-
-                        md:min-h-[160px]
-
-                        lg:min-h-[clamp(132px,8.680556vw,150px)]
-
-                        group-focus-visible:bg-[#E0BE3D]
-
-                        ${
-                          isActive
-                            ? "bg-[#E0BE3D]"
-                            : allowHover
-                              ? `
-                                bg-black
-                                lg:group-hover:bg-[#E0BE3D]
-                              `
-                              : "bg-black"
-                        }
-                      `}
-                    >
-                      {/* Number divider */}
-                      <span
-                        aria-hidden="true"
-                        className="
-                          pointer-events-none
-                          absolute bottom-0 right-0 top-0
-                          z-[30] w-px
-                          bg-[#343434]
-                        "
-                      />
-
-                      <span
-                        className={`
-                          relative z-10
-                          font-[family-name:var(--font-geist-sans)]
-                          text-[clamp(12px,0.925926vw,16px)]
-                          font-medium
-                          leading-none
-                          tracking-[-0.02em]
-
-                          group-focus-visible:text-black
-
-                          ${
-                            isActive
-                              ? "text-black"
-                              : allowHover
-                                ? `
-                                  text-[#8E8E8E]
-                                  lg:group-hover:text-black
-                                `
-                                : "text-[#8E8E8E]"
-                          }
-                        `}
-                      >
-                        {company.number}
-                      </span>
-                    </div>
-
-                    {/* Company content */}
-                    <div
-                      className="
-                        flex min-w-0
-                        flex-col justify-center
-                        gap-[12px]
-                        bg-black
-                        px-[18px]
-                        py-[24px]
-
-                        sm:px-[22px]
-
-                        md:gap-[14px]
-                        md:px-[26px]
-                        md:py-[26px]
-
-                        lg:gap-[clamp(12px,0.925926vw,16px)]
-                        lg:px-[clamp(22px,2.083333vw,36px)]
-                        lg:py-[clamp(20px,1.50463vw,26px)]
-                      "
-                    >
-                      <Typography
-                        as="h3"
-                        variant="cardTitleLight"
-                        className="
-                          !m-0
-                          max-w-full
-                          !whitespace-normal
-                          !break-words
-                          !font-medium
-                          !leading-[1.18]
-                          !tracking-[-0.025em]
-                          !text-white
-                        "
-                      >
-                        {company.name}
-                      </Typography>
-
-                      <Typography
-                        as="p"
-                        variant="statLabel"
-                        className="
-                          !m-0
-                          block max-w-[780px]
-                          overflow-visible
-                          !whitespace-normal
-                          !break-words
-                          !text-[13px]
-                          !font-normal
-                          !leading-[1.45]
-                          !text-[#8E8E8E]
-
-                          sm:!text-[14px]
-                        "
-                      >
-                        {company.description}
-                      </Typography>
-                    </div>
-                  </div>
-
-                  {/* Image area */}
-                  <div
-                    className="
-                      relative isolate
-                      -mx-px
-                      aspect-[4/3]
-                      w-[calc(100%+2px)]
-                      overflow-hidden
-                      bg-black
+                      group sticky top-0
+                      isolate block
+                      w-full
+                      bg-black text-white
+                      no-underline outline-none
 
                       max-lg:[backface-visibility:hidden]
                       max-lg:[-webkit-backface-visibility:hidden]
-                      max-lg:[transform:translate3d(0,0,0)]
+                      max-lg:[transform:translateZ(0)]
 
-                      sm:aspect-[16/10]
-
-                      md:aspect-[16/8]
-
-                      lg:h-[clamp(320px,27.199074vw,470px)]
-                      lg:aspect-auto
+                      focus-visible:ring-2
+                      focus-visible:ring-inset
+                      focus-visible:ring-[#E0BE3D]
                     "
                   >
-                    {/* Image bottom line */}
+                    {/* Full card borders */}
                     <span
                       aria-hidden="true"
                       className="
                         pointer-events-none
                         absolute bottom-0
-                        left-px right-px
-                        z-[70] h-px
+                        left-0 top-0
+                        z-[70] w-px
                         bg-[#343434]
                       "
                     />
 
-                    {/* Black fallback */}
-                    <div
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute -inset-[2px]
-                        bg-black
-                      "
-                    />
-
-                    {/* Image */}
-                    <div
-                      className="
-                        absolute -inset-[2px]
-                        overflow-hidden
-                        bg-black
-
-                        max-lg:[backface-visibility:hidden]
-                        max-lg:[-webkit-backface-visibility:hidden]
-                        max-lg:[transform:translate3d(0,0,0)]
-                      "
-                    >
-                      <Image
-                        src={company.image}
-                        alt={company.imageAlt}
-                        fill
-                        draggable={false}
-                        loading={
-                          index === 0
-                            ? "eager"
-                            : "lazy"
-                        }
-                        fetchPriority={
-                          index === 0
-                            ? "high"
-                            : "auto"
-                        }
-                        quality={80}
-                        sizes="
-                          (max-width: 639px) calc(100vw - 80px),
-                          (max-width: 767px) calc(100vw - 88px),
-                          (max-width: 1023px) calc(90vw - 48px),
-                          (max-width: 1728px) 67vw,
-                          1160px
-                        "
-                        className="
-                          select-none
-                          object-cover object-center
-                          grayscale
-
-                          max-lg:[backface-visibility:hidden]
-                        "
-                      />
-                    </div>
-
-                    {/* Dark overlay */}
-                    <div
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute -inset-[2px]
-                        z-10 bg-black/65
-
-                        max-lg:[backface-visibility:hidden]
-                        max-lg:[transform:translate3d(0,0,0)]
-                      "
-                    />
-
-                    {/* Dark edge protection */}
-                    <div
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute -inset-[2px]
-                        z-[11]
-                        shadow-[inset_0_0_80px_rgba(0,0,0,0.72)]
-
-                        md:shadow-[inset_0_0_100px_rgba(0,0,0,0.72)]
-
-                        max-lg:[backface-visibility:hidden]
-                        max-lg:[transform:translate3d(0,0,0)]
-                      "
-                    />
-
-                    {/* Company logo */}
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute left-1/2 top-1/2
-                        z-20
-                        -translate-x-1/2
-                        -translate-y-1/2
-
-                        max-lg:[backface-visibility:hidden]
-                      "
-                    >
-                      <div
-                        className="
-                          relative
-                          h-[clamp(54px,15vw,72px)]
-                          w-[clamp(150px,44vw,210px)]
-
-                          md:h-[clamp(70px,9vw,92px)]
-                          md:w-[clamp(200px,28vw,270px)]
-
-                          lg:h-[clamp(60px,6.365741vw,110px)]
-                          lg:w-[clamp(160px,17.361111vw,300px)]
-                        "
-                      >
-                        <Image
-                          src={company.logo}
-                          alt={`${company.name} logo`}
-                          fill
-                          draggable={false}
-                          sizes="
-                            (max-width: 767px) 210px,
-                            (max-width: 1023px) 270px,
-                            300px
-                          "
-                          className="
-                            select-none
-                            object-contain
-                            brightness-0 invert
-                          "
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Space between cards */}
-                  <div
-                    aria-hidden="true"
-                    className="
-                      relative
-                      h-[32px]
-                      bg-black
-
-                      sm:h-[38px]
-                      md:h-[48px]
-
-                      lg:h-[clamp(30px,3.472222vw,60px)]
-
-                      max-lg:[backface-visibility:hidden]
-                      max-lg:[transform:translate3d(0,0,0)]
-                    "
-                  >
-                    {/* Card bottom line */}
                     <span
                       aria-hidden="true"
                       className="
                         pointer-events-none
-                        absolute bottom-0 left-0 right-0
-                        z-[70] h-px
+                        absolute bottom-0
+                        right-0 top-0
+                        z-[70] w-px
                         bg-[#343434]
                       "
                     />
-                  </div>
-                </a>
+
+                    {/* Information row */}
+                    <div
+                      className="
+                        relative grid w-full
+                        grid-cols-[52px_minmax(0,1fr)]
+                        bg-black
+
+                        sm:grid-cols-[56px_minmax(0,1fr)]
+
+                        md:grid-cols-[64px_minmax(0,1fr)]
+
+                        lg:grid-cols-[clamp(54px,4.166667vw,72px)_minmax(0,1fr)]
+                      "
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute left-0
+                          right-0 top-0
+                          z-[70] h-px
+                          bg-[#343434]
+                        "
+                      />
+
+                      <span
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute bottom-0
+                          left-0 right-0
+                          z-[70] h-px
+                          bg-[#343434]
+                        "
+                      />
+
+                      {/* Number column */}
+                      <div
+                        className={`
+                          relative flex
+                          min-h-[156px]
+                          items-center
+                          justify-center
+
+                          sm:min-h-[150px]
+
+                          md:min-h-[160px]
+
+                          lg:min-h-[clamp(132px,8.680556vw,150px)]
+
+                          group-focus-visible:bg-[#E0BE3D]
+
+                          ${
+                            isActive
+                              ? "bg-[#E0BE3D]"
+                              : `
+                                bg-black
+                                lg:group-hover:bg-[#E0BE3D]
+                              `
+                          }
+                        `}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="
+                            pointer-events-none
+                            absolute bottom-0
+                            right-0 top-0
+                            z-[30] w-px
+                            bg-[#343434]
+                          "
+                        />
+
+                        <span
+                          className={`
+                            relative z-10
+                            font-[family-name:var(--font-geist-sans)]
+                            text-[clamp(12px,0.925926vw,16px)]
+                            font-medium
+                            leading-none
+                            tracking-[-0.02em]
+
+                            group-focus-visible:text-black
+
+                            ${
+                              isActive
+                                ? "text-black"
+                                : `
+                                  text-[#8E8E8E]
+                                  lg:group-hover:text-black
+                                `
+                            }
+                          `}
+                        >
+                          {company.number}
+                        </span>
+                      </div>
+
+                      {/* Company content */}
+                      <div
+                        className="
+                          flex min-w-0
+                          flex-col justify-center
+                          gap-[12px]
+                          bg-black
+                          px-[18px]
+                          py-[24px]
+
+                          sm:px-[22px]
+
+                          md:gap-[14px]
+                          md:px-[26px]
+                          md:py-[26px]
+
+                          lg:gap-[clamp(12px,0.925926vw,16px)]
+                          lg:px-[clamp(22px,2.083333vw,36px)]
+                          lg:py-[clamp(20px,1.50463vw,26px)]
+                        "
+                      >
+                        <Typography
+                          as="h3"
+                          variant="cardTitleLight"
+                          className="
+                            !m-0
+                            max-w-full
+                            !whitespace-normal
+                            !break-words
+                            !font-medium
+                            !leading-[1.18]
+                            !tracking-[-0.025em]
+                            !text-white
+                          "
+                        >
+                          {company.name}
+                        </Typography>
+
+                        <Typography
+                          as="p"
+                          variant="statLabel"
+                          className="
+                            !m-0
+                            block max-w-[780px]
+                            overflow-visible
+                            !whitespace-normal
+                            !break-words
+                            !text-[13px]
+                            !font-normal
+                            !leading-[1.45]
+                            !text-[#8E8E8E]
+
+                            sm:!text-[14px]
+                          "
+                        >
+                          {company.description}
+                        </Typography>
+                      </div>
+                    </div>
+
+                    {/* Image area */}
+                    <div
+                      className="
+                        relative isolate
+                        aspect-[4/3]
+                        w-full overflow-hidden
+                        bg-black
+
+                        sm:aspect-[16/10]
+
+                        md:aspect-[16/8]
+
+                        lg:h-[clamp(320px,27.199074vw,470px)]
+                        lg:aspect-auto
+                      "
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute bottom-0
+                          left-0 right-0
+                          z-[70] h-px
+                          bg-[#343434]
+                        "
+                      />
+
+                      <div
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute inset-0
+                          bg-black
+                        "
+                      />
+
+                      <div
+                        className="
+                          absolute inset-0
+                          overflow-hidden
+                          bg-black
+                        "
+                      >
+                        <Image
+                          src={company.image}
+                          alt={company.imageAlt}
+                          fill
+                          draggable={false}
+                          loading={
+                            index < 2
+                              ? "eager"
+                              : "lazy"
+                          }
+                          fetchPriority={
+                            index === 0
+                              ? "high"
+                              : "auto"
+                          }
+                          decoding="async"
+                          quality={80}
+                          sizes="
+                            (max-width: 639px) calc(100vw - 80px),
+                            (max-width: 767px) calc(100vw - 88px),
+                            (max-width: 1023px) calc(90vw - 48px),
+                            (max-width: 1728px) 67vw,
+                            1160px
+                          "
+                          className="
+                            select-none
+                            object-cover
+                            object-center
+                            grayscale
+                          "
+                        />
+                      </div>
+
+                      {/* Dark overlay */}
+                      <div
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute inset-0
+                          z-10 bg-black/65
+                        "
+                      />
+
+                      {/* Desktop edge protection */}
+                      <div
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute inset-0
+                          z-[11] hidden
+
+                          lg:block
+                          lg:shadow-[inset_0_0_100px_rgba(0,0,0,0.72)]
+                        "
+                      />
+
+                      {/* Company logo */}
+                      <div
+                        className="
+                          pointer-events-none
+                          absolute left-1/2
+                          top-1/2 z-20
+                          -translate-x-1/2
+                          -translate-y-1/2
+                        "
+                      >
+                        <div
+                          className="
+                            relative
+                            h-[clamp(54px,15vw,72px)]
+                            w-[clamp(150px,44vw,210px)]
+
+                            md:h-[clamp(70px,9vw,92px)]
+                            md:w-[clamp(200px,28vw,270px)]
+
+                            lg:h-[clamp(60px,6.365741vw,110px)]
+                            lg:w-[clamp(160px,17.361111vw,300px)]
+                          "
+                        >
+                          <Image
+                            src={company.logo}
+                            alt={`${company.name} logo`}
+                            fill
+                            draggable={false}
+                            loading="eager"
+                            decoding="async"
+                            sizes="
+                              (max-width: 767px) 210px,
+                              (max-width: 1023px) 270px,
+                              300px
+                            "
+                            className="
+                              select-none
+                              object-contain
+                              brightness-0 invert
+                            "
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Space between cards */}
+                    <div
+                      aria-hidden="true"
+                      className="
+                        relative
+                        h-[32px]
+                        bg-black
+
+                        sm:h-[38px]
+                        md:h-[48px]
+
+                        lg:h-[clamp(30px,3.472222vw,60px)]
+                      "
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute bottom-0
+                          left-0 right-0
+                          z-[70] h-px
+                          bg-[#343434]
+                        "
+                      />
+                    </div>
+                  </a>
+                </Fragment>
               );
             },
           )}

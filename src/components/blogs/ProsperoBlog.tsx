@@ -98,7 +98,6 @@ export default function ProsperoBlog() {
     <article
       style={
         {
-          "--blog-gutter": "14.930556%",
           "--blog-top-line":
             "clamp(28px, 2.893519vw, 50px)",
         } as CSSProperties
@@ -111,8 +110,11 @@ export default function ProsperoBlog() {
         bg-white text-black
 
         [--blog-gutter:20px]
+
         md:[--blog-gutter:5%]
+
         lg:[--blog-gutter:14.930556%]
+
         max-md:[--blog-top-line:24px]
       "
     >
@@ -144,11 +146,15 @@ export default function ProsperoBlog() {
         className="
           relative z-10
           mx-[var(--blog-gutter)]
-          px-[clamp(16px,1.851852vw,32px)]
+          px-[20px]
           pb-[clamp(70px,6.944444vw,120px)]
           pt-[clamp(70px,5.208333vw,90px)]
 
-          max-md:px-[16px]
+          md:px-[24px]
+
+          lg:px-[clamp(16px,1.851852vw,32px)]
+
+          max-md:pb-[70px]
           max-md:pt-[56px]
         "
       >
@@ -260,7 +266,7 @@ export default function ProsperoBlog() {
           </Typography>
         </div>
 
-        {/* Autoplay video */}
+        {/* Main video */}
         <div
           className="
             relative
@@ -420,38 +426,45 @@ export default function ProsperoBlog() {
               max-md:grid-cols-1
             "
           >
-            {prosperoImages.map((image) => (
-              <figure
-                key={image.id}
-                className="
-                  group relative
-                  aspect-[4/3]
-                  overflow-hidden
-                  border border-[#D7D7D7]
-                  bg-[#EEEEEE]
-                "
-              >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  quality={85}
-                  loading="lazy"
-                  decoding="async"
-                  sizes="(max-width: 768px) 86vw, (max-width: 1728px) 22vw, 375px"
+            {prosperoImages.map(
+              (image) => (
+                <figure
+                  key={image.id}
                   className="
-                    object-cover object-center
-                    transition-transform
-                    duration-500
-                    ease-[cubic-bezier(0.22,1,0.36,1)]
-
-                    group-hover:scale-[1.03]
-                    motion-reduce:transform-none
-                    motion-reduce:transition-none
+                    group relative
+                    aspect-[4/3]
+                    overflow-hidden
+                    border border-[#D7D7D7]
+                    bg-[#EEEEEE]
                   "
-                />
-              </figure>
-            ))}
+                >
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    fill
+                    quality={85}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="
+                      (max-width: 767px) calc(100vw - 80px),
+                      (max-width: 1728px) 22vw,
+                      375px
+                    "
+                    className="
+                      object-cover object-center
+                      transition-transform
+                      duration-500
+                      ease-[cubic-bezier(0.22,1,0.36,1)]
+
+                      group-hover:scale-[1.03]
+
+                      motion-reduce:transform-none
+                      motion-reduce:transition-none
+                    "
+                  />
+                </figure>
+              ),
+            )}
           </div>
 
           <BlogContentSection

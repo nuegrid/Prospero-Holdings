@@ -80,7 +80,6 @@ export default function PsGoldBlog() {
     <article
       style={
         {
-          "--blog-gutter": "14.930556%",
           "--blog-top-line":
             "clamp(28px, 2.893519vw, 50px)",
         } as CSSProperties
@@ -93,8 +92,11 @@ export default function PsGoldBlog() {
         bg-white text-black
 
         [--blog-gutter:20px]
+
         md:[--blog-gutter:5%]
+
         lg:[--blog-gutter:14.930556%]
+
         max-md:[--blog-top-line:24px]
       "
     >
@@ -126,11 +128,15 @@ export default function PsGoldBlog() {
         className="
           relative z-10
           mx-[var(--blog-gutter)]
-          px-[clamp(16px,1.851852vw,32px)]
+          px-[20px]
           pb-[clamp(70px,6.944444vw,120px)]
           pt-[clamp(70px,5.208333vw,90px)]
 
-          max-md:px-[16px]
+          md:px-[24px]
+
+          lg:px-[clamp(16px,1.851852vw,32px)]
+
+          max-md:pb-[70px]
           max-md:pt-[56px]
         "
       >
@@ -258,7 +264,12 @@ export default function PsGoldBlog() {
             fill
             loading="eager"
             quality={85}
-            sizes="(max-width: 768px) 86vw, (max-width: 1728px) 67vw, 1160px"
+            sizes="
+              (max-width: 767px) calc(100vw - 80px),
+              (max-width: 1023px) calc(90vw - 48px),
+              (max-width: 1728px) 67vw,
+              1160px
+            "
             className="
               object-cover object-center
               transition-transform
@@ -266,6 +277,7 @@ export default function PsGoldBlog() {
               ease-[cubic-bezier(0.22,1,0.36,1)]
 
               group-hover:scale-[1.025]
+
               motion-reduce:transform-none
               motion-reduce:transition-none
             "

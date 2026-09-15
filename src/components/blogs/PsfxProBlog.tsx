@@ -98,11 +98,13 @@ function BlogVideo({
             ? `
               mt-[clamp(28px,2.314815vw,40px)]
               aspect-[1400/660]
+
               max-md:aspect-[16/10]
             `
             : `
               my-[clamp(40px,4.050926vw,70px)]
               aspect-video
+
               max-md:aspect-[16/10]
             `
         }
@@ -147,7 +149,6 @@ export default function PsfxProBlog() {
     <article
       style={
         {
-          "--blog-gutter": "14.930556%",
           "--blog-top-line":
             "clamp(28px, 2.893519vw, 50px)",
         } as CSSProperties
@@ -160,8 +161,11 @@ export default function PsfxProBlog() {
         bg-white text-black
 
         [--blog-gutter:20px]
+
         md:[--blog-gutter:5%]
+
         lg:[--blog-gutter:14.930556%]
+
         max-md:[--blog-top-line:24px]
       "
     >
@@ -193,11 +197,15 @@ export default function PsfxProBlog() {
         className="
           relative z-10
           mx-[var(--blog-gutter)]
-          px-[clamp(16px,1.851852vw,32px)]
+          px-[20px]
           pb-[clamp(70px,6.944444vw,120px)]
           pt-[clamp(70px,5.208333vw,90px)]
 
-          max-md:px-[16px]
+          md:px-[24px]
+
+          lg:px-[clamp(16px,1.851852vw,32px)]
+
+          max-md:pb-[70px]
           max-md:pt-[56px]
         "
       >
