@@ -17,8 +17,11 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Prospero Holding",
-  description: "Prospero Holding",
+
+  title: "Prospero Holding | Investment & Business Group",
+
+  description:
+    "Prospero Holding is a diversified investment and business group focused on building opportunities across financial services, technology, real estate and strategic ventures.",
 };
 
 type RootLayoutProps = Readonly<{
@@ -36,12 +39,10 @@ export default function RootLayout({
           antialiased
         `}
       >
-        {/* Whole website smooth scrolling */}
         <SmoothScroll>
           {children}
         </SmoothScroll>
 
-        {/* Custom cursor */}
         <SmoothCursor
           size={8}
           offset={18}
