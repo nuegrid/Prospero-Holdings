@@ -477,7 +477,7 @@ export default function LatestDevelopmentsSection() {
 
   return (
     <section
-      id="news"
+      id="insights"
       className="
         relative w-full
         overflow-x-clip

@@ -32,12 +32,8 @@ const exploreLinks: FooterLink[] = [
     href: "/#companies",
   },
   {
-    label: "News",
-    href: "/#news",
-  },
-  {
-    label: "Careers",
-    href: "/#careers",
+    label: "Insights",
+    href: "/#insights",
   },
   {
     label: "Contact",
