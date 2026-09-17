@@ -54,9 +54,9 @@ const navigationLinks: NavigationItem[] = [
     sectionId: "companies",
   },
   {
-    label: "News",
-    href: "/#news",
-    sectionId: "news",
+    label: "Insights",
+    href: "/#insights",
+    sectionId: "insights",
   },
 ];
 
