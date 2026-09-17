@@ -59,7 +59,7 @@ const groupLinks: FooterLink[] = [
     href: "https://matrixfinbiz.com/",
   },
   {
-    label: "Nuegrid",
+    label: "Nuegrid Solutions",
     href: "https://nuegrid.com/",
   },
   {
